@@ -17,7 +17,7 @@ class AppUI:
 
         self.selected_option = tk.IntVar(value=0)
         self.ws_url_var = tk.StringVar(value="ws://localhost:8765/ws")
-        self.http_url_var = tk.StringVar(value="http://localhost:8000")
+        self.http_url_var = tk.StringVar(value="http://localhost:8765")
 
         self.request_text = None
         self.log_text = None
@@ -48,7 +48,7 @@ class AppUI:
 
         title = ttk.Label(
             self.root,
-            text="Python 3 Tkinter Client - WebSocket + HTTP",
+            text="IoT Device Simulator",
             font=("Segoe UI", 15, "bold"),
         )
         title.grid(row=0, column=0, sticky="w", padx=12, pady=(12, 8))
