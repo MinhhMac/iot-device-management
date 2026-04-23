@@ -9,7 +9,7 @@ tools:
   - read/terminalLastCommand
   - read/problems
 model:
-  - GPT-5 (copilot)
+  - Claude Sonnet 4.6 (copilot)
 ---
 
 You are a software test engineer focused on high-signal automated tests.

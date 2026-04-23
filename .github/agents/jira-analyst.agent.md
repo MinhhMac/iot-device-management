@@ -7,7 +7,7 @@ tools:
   - search/usages
   - read/problems
 model:
-  - GPT-5 (copilot)
+  - Claude Sonnet 4.6 (copilot)
 handoffs:
   - label: Start Implementation
     agent: Implementer
