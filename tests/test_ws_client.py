@@ -31,14 +31,12 @@ class TestWebSocketManager(unittest.TestCase):
         manager.handshake_payload = payload
         manager.connected = False  # Initially not connected
 
-        # Mock WebSocketApp instance
         ws_instance = MagicMock()
+        manager.ws_app = ws_instance
         ws_app_mock.return_value = ws_instance
 
-        # Simulate on_open call
         manager._on_open(ws_instance)
 
-        # Check that connected is set and handshake is sent
         self.assertTrue(manager.connected)
         ws_instance.send.assert_called_once()
         self.logger.log.assert_any_call("Handshake sent automatically.")
@@ -46,10 +44,11 @@ class TestWebSocketManager(unittest.TestCase):
     @patch('ws_client.WebSocketApp')
     def test_on_open_invalid_handshake_not_sent(self, ws_app_mock):
         manager = WebSocketManager(self.logger)
-        payload = {"action": "invalid"}  # Invalid handshake
+        payload = {"action": "invalid"}
         manager.handshake_payload = payload
 
         ws_instance = MagicMock()
+        manager.ws_app = ws_instance
         ws_app_mock.return_value = ws_instance
 
         manager._on_open(ws_instance)
@@ -63,12 +62,12 @@ class TestWebSocketManager(unittest.TestCase):
         manager.handshake_payload = None
 
         ws_instance = MagicMock()
+        manager.ws_app = ws_instance
         ws_app_mock.return_value = ws_instance
 
         manager._on_open(ws_instance)
 
         ws_instance.send.assert_not_called()
-        # Should not log handshake messages
         handshake_logs = [call for call in self.logger.log.call_args_list if "handshake" in str(call)]
         self.assertEqual(len(handshake_logs), 0)
 
