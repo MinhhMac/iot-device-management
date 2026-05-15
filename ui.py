@@ -2,6 +2,7 @@ import json
 import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
+import uuid
 
 from ws_client import WebSocketManager
 from http_client import HttpClient
@@ -18,9 +19,13 @@ class AppUI:
         self.selected_option = tk.IntVar(value=0)
         self.ws_url_var = tk.StringVar(value="ws://localhost:8765/ws")
         self.http_url_var = tk.StringVar(value="http://localhost:8765")
+        self.client_id_var = tk.StringVar(value="simulator-001")
+        self.auth_token_var = tk.StringVar(value="")
 
         self.request_text = None
         self.log_text = None
+
+        self.session_id = str(uuid.uuid4())
 
         self.logger = AppLogger(self._append_log)
         self.http_client = HttpClient(self.logger)
@@ -85,6 +90,12 @@ class AppUI:
 
         ttk.Label(frame, text="HTTP Base URL:").grid(row=1, column=0, sticky="w", padx=8, pady=6)
         ttk.Entry(frame, textvariable=self.http_url_var).grid(row=1, column=1, sticky="ew", padx=8, pady=6)
+
+        ttk.Label(frame, text="Client ID:").grid(row=2, column=0, sticky="w", padx=8, pady=6)
+        ttk.Entry(frame, textvariable=self.client_id_var).grid(row=2, column=1, sticky="ew", padx=8, pady=6)
+
+        ttk.Label(frame, text="Auth Token:").grid(row=3, column=0, sticky="w", padx=8, pady=6)
+        ttk.Entry(frame, textvariable=self.auth_token_var).grid(row=3, column=1, sticky="ew", padx=8, pady=6)
 
     def _build_request_section(self) -> None:
         frame = ttk.LabelFrame(self.root, text="Command / Request")
@@ -159,12 +170,27 @@ class AppUI:
 
     def _handle_ws_message(self, message: str) -> None:
         self.logger.log(f"WebSocket received: {message}")
+        try:
+            data = json.loads(message)
+            if data.get("action") == "handshake_ack":
+                self.logger.log("Handshake acknowledged by server.")
+        except json.JSONDecodeError:
+            pass  # Not JSON, already logged
 
     def _handle_ws_status_change(self, connected: bool) -> None:
         self.ws_connected = connected
 
     def connect(self) -> None:
-        self.ws_manager.connect(self.ws_url_var.get().strip())
+        handshake_payload = {
+            "action": "handshake",
+            "client_type": "iot_simulator",
+            "version": "1.0",
+            "capabilities": ["websocket", "http"],
+            "session_id": self.session_id,
+            "auth_token": self.auth_token_var.get().strip() or "",
+            "client_id": self.client_id_var.get().strip(),
+        }
+        self.ws_manager.connect(self.ws_url_var.get().strip(), handshake_payload)
 
     def disconnect(self) -> None:
         self.ws_manager.disconnect()

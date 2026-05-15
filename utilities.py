@@ -1,6 +1,18 @@
 from datetime import datetime
 
 
+def validate_handshake(payload: dict) -> bool:
+    required_fields = ["action", "client_type", "version", "capabilities"]
+    for field in required_fields:
+        if field not in payload:
+            return False
+    if payload.get("action") != "handshake":
+        return False
+    if not isinstance(payload.get("capabilities"), list):
+        return False
+    return True
+
+
 DEFAULT_COMMANDS = [
     {
         "name": "Ping",
@@ -29,6 +41,17 @@ DEFAULT_COMMANDS = [
         "payload": {
             "action": "echo",
             "message": "hello from tkinter client",
+        },
+    },
+    {
+        "name": "Handshake",
+        "payload": {
+            "action": "handshake",
+            "client_type": "iot_simulator",
+            "version": "1.0",
+            "capabilities": ["websocket", "http"],
+            "session_id": "",
+            "auth_token": "",
         },
     },
     {

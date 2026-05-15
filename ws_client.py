@@ -3,6 +3,7 @@ import threading
 from typing import Callable, Optional
 
 from websocket import WebSocketApp
+from utilities import validate_handshake
 
 
 class WebSocketManager:
@@ -19,7 +20,7 @@ class WebSocketManager:
         self.ws_thread = None
         self.connected = False
 
-    def connect(self, ws_url: str) -> None:
+    def connect(self, ws_url: str, handshake_payload: Optional[dict] = None) -> None:
         if self.connected:
             self.logger.log("WebSocket is already connected.")
             return
@@ -28,6 +29,7 @@ class WebSocketManager:
             self.logger.log("WebSocket URL is empty.")
             return
 
+        self.handshake_payload = handshake_payload
         self.logger.log(f"Connecting to WebSocket: {ws_url}")
 
         def run_ws() -> None:
@@ -77,6 +79,12 @@ class WebSocketManager:
     def _on_open(self, _ws) -> None:
         self._set_connected(True)
         self.logger.log("WebSocket connected.")
+        if self.handshake_payload:
+            if validate_handshake(self.handshake_payload):
+                self.send_json(self.handshake_payload)
+                self.logger.log("Handshake sent automatically.")
+            else:
+                self.logger.log("Invalid handshake payload, not sent.")
 
     def _on_message(self, _ws, message: str) -> None:
         if self.on_message:
